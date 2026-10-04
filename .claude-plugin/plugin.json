@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "reviewbot",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "displayName": "reviewbot",
   "description": "Mass review for agent work: every decision on one private page, answered from any device, read back by the agent.",
   "author": {
@@ -15,6 +15,9 @@
     "artifacts",
     "workflow"
   ],
+  "icon": "./icon.png",
+  "documentationUrl": "https://hntw.github.io/reviewbot/",
+  "supportUrl": "https://github.com/hntw/reviewbot/issues",
   "license": "MIT",
   "skills": [
     "./skills/reviewbot"
