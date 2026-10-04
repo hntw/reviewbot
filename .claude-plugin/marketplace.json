@@ -1,0 +1,15 @@
+{
+  "name": "reviewbot",
+  "owner": {
+    "name": "Jamie Grove"
+  },
+  "description": "Mass review for agent work: every decision on one private page, answered from any device, read back by the agent.",
+  "plugins": [
+    {
+      "name": "reviewbot",
+      "source": "./",
+      "description": "Mass review for agent work: every decision on one private page, answered from any device, read back by the agent.",
+      "version": "0.1.0"
+    }
+  ]
+}

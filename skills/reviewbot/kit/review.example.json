@@ -1,0 +1,69 @@
+{
+  "eyebrow": "Round 1 · example",
+  "title": "Example review",
+  "lede": "Two pages are ready on the test site. Tap Approve, Change or Hold on each, add a note if you want something different, then hit I'm done.",
+  "status": [
+    [
+      "Live: 0",
+      "ok"
+    ],
+    [
+      "On test: 2",
+      "wait"
+    ]
+  ],
+  "sections": [
+    {
+      "id": "pages",
+      "eyebrow": "Built on test",
+      "title": "Pages",
+      "cards": [
+        {
+          "id": "p-about",
+          "title": "About page",
+          "changed": "New header band and a shorter intro, same words as before.",
+          "links": [
+            [
+              "Open on test",
+              "https://example.com/about?preview=1"
+            ],
+            [
+              "Live today",
+              "https://example.com/about"
+            ]
+          ],
+          "shots": [
+            [
+              "d_about.jpg",
+              "Desktop, top"
+            ],
+            [
+              "m_about.jpg",
+              "Phone, top"
+            ]
+          ],
+          "prod": "push the About page to the live site"
+        },
+        {
+          "id": "p-faq",
+          "title": "FAQ page",
+          "you_said": "Make the answers collapse.",
+          "changed": "Each answer is now a tap-to-open row."
+        }
+      ],
+      "questions": [
+        {
+          "id": "old-pages",
+          "text": "Unpublish the 3 old promo pages and redirect each to the home page?",
+          "prod": "unpublish 3 old promo pages and add 3 redirects to home"
+        }
+      ]
+    }
+  ],
+  "answered": [
+    {
+      "text": "Keep the old color palette?",
+      "answer": "Yes (in chat, Oct 4)"
+    }
+  ]
+}
