@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>reviewbot</title>
+<meta name="description" content="A Claude Code plugin for mass review. Your agent builds a batch, puts every decision on one private page, and you answer from any device.">
+<meta property="og:title" content="reviewbot">
+<meta property="og:description" content="Your agent builds. You decide. One pass.">
+<meta property="og:image" content="https://hntw.github.io/reviewbot/poster.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,700..900&family=Open+Sans:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one reading column; the video is the hero; install sits right under it. Tokens match the review kit. */
+:root{--bg:#f6f3ee;--panel:#fff;--ink:#1d1b18;--ink2:#6b655c;--line:#e4ddd2;--hot:#e0901f;--rust:#b5541a;--go:#0f7a3c;--warn:#a8620a;--hold:#8a8378;--code:#1f1b16;--codeink:#f3ece0;
+--disp:"Archivo","Arial Narrow",Arial,sans-serif;--body:"Open Sans",system-ui,-apple-system,sans-serif;--mono:"JetBrains Mono",ui-monospace,Menlo,monospace}
+@media (prefers-color-scheme:dark){:root{--bg:#15120e;--panel:#1f1b16;--ink:#f3ece0;--ink2:#b3a894;--line:#383128;--hot:#ffb547;--rust:#f08a4b;--go:#4cc47f;--warn:#f0b04a;--hold:#a59d90;--code:#0c0a08;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 var(--body);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:20px;padding-block:22px 70px}
+header{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.mark{font:900 22px var(--disp);font-stretch:112%;text-transform:uppercase;letter-spacing:.01em;color:var(--ink);text-decoration:none}
+.gh{font-weight:700;font-size:15px;color:var(--ink);text-decoration:none;border-radius:99px;padding:8px 16px;box-shadow:inset 0 0 0 1.5px var(--line)}
+.gh:hover{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.eye{font-size:13px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--rust);margin:0}
+h1,h2,h3{font-family:var(--disp);line-height:1.04;margin:0;text-wrap:balance}
+h1{font-size:clamp(40px,7vw,84px);font-weight:900;font-stretch:110%;text-transform:uppercase;margin-top:10px;letter-spacing:-.01em}
+h2{font-size:clamp(26px,3.4vw,38px);font-weight:800;margin-top:6px}
+h3{font-size:19px;font-weight:800}
+p{margin:0 0 12px;max-width:66ch}
+.hero{padding-top:56px}
+.lede{font-size:clamp(18px,2vw,21px);color:var(--ink2);margin-top:18px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 0}
+.chip{font:700 15px var(--body);color:#fff;border-radius:99px;padding:7px 18px}
+.chip.a{background:var(--go)}.chip.c{background:var(--warn)}.chip.h{background:var(--hold)}
+video{display:block;width:100%;max-width:100%;aspect-ratio:16/9;border-radius:16px;margin-top:34px;background:#000;box-shadow:0 24px 60px rgba(40,25,10,.18)}
+.cap{font-size:13.5px;color:var(--ink2);margin-top:10px}
+section{margin-top:72px}
+.install{background:var(--panel);border-radius:18px;padding:26px;box-shadow:0 0 0 1px var(--line);margin-top:20px}
+.code{position:relative;background:var(--code);color:var(--codeink);border-radius:12px;padding:18px 96px 18px 20px;font:500 15px/1.8 var(--mono);white-space:pre;overflow-x:auto;margin:14px 0}
+.code span{color:#9fd08a}
+.copy{position:absolute;top:10px;right:10px;font:700 13px var(--body);border:0;border-radius:99px;padding:7px 14px;background:#2b2620;color:var(--codeink);cursor:pointer}
+.copy:hover{background:#3a332b}
+.copy:focus-visible,.gh:focus-visible{outline:2px solid var(--hot);outline-offset:2px}
+.needs{font-size:14.5px;color:var(--ink2);margin:0}
+ol.steps{list-style:none;padding:0;margin:24px 0 0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;counter-reset:s}
+ol.steps li{background:var(--panel);border-radius:16px;padding:18px;box-shadow:0 0 0 1px var(--line);counter-increment:s;min-width:0}
+ol.steps li:before{content:counter(s);display:block;font:900 30px var(--disp);color:var(--rust);margin-bottom:6px}
+ol.steps b{display:block;font-family:var(--disp);font-size:18px;margin-bottom:4px}
+ol.steps span{font-size:15px;color:var(--ink2)}
+.rules{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:24px}
+.rule{border-left:4px solid var(--hot);background:color-mix(in srgb,var(--hot) 9%,transparent);border-radius:0 12px 12px 0;padding:14px 18px}
+.rule h3{margin-bottom:4px}.rule p{margin:0;font-size:15.5px;color:var(--ink2)}
+.how{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 34px;margin-top:22px}
+.how div:last-child:nth-child(odd){grid-column:1/-1}
+.how h3{margin-bottom:6px}.how p{font-size:16px;color:var(--ink2);margin:0}
+.box{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start;margin-top:20px}
+.tree{background:var(--code);color:var(--codeink);border-radius:12px;padding:18px 20px;font:500 14px/1.8 var(--mono);overflow-x:auto;white-space:pre;margin:0}
+.tree i{font-style:normal;color:#b3a894}
+footer{margin-top:80px;padding-top:22px;border-top:1px solid var(--line);font-size:13.5px;color:var(--ink2);display:flex;flex-wrap:wrap;gap:8px 24px}
+footer a{color:var(--ink2)}
+@media (max-width:900px){ol.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:720px){ol.steps,.rules,.box,.how{grid-template-columns:1fr}.code{padding:52px 18px 16px;font-size:13.5px}.hero{padding-top:34px}section{margin-top:56px}.install{padding:18px}}
+@media (prefers-reduced-motion:no-preference){.gh,.copy{transition:all .15s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><a class="mark" href="./">reviewbot</a><a class="gh" href="https://github.com/hntw/reviewbot">GitHub</a></header>
+
+<div class="hero">
+  <p class="eye">A Claude Code plugin</p>
+  <h1>Your agent builds. You decide. One pass.</h1>
+  <p class="lede">An agent can make 60 things in an afternoon, and then it asks you about all 60 in chat, and the questions scroll away. The building part is fast. The bottleneck is you.</p>
+  <p class="lede" style="margin-top:0">With reviewbot you kick off a huge session and go to sleep. When you wake up, or when you hit the cafe for a spro, the whole batch is waiting on one page. You review it from wherever you are.</p>
+  <div class="chips" aria-hidden="true"><span class="chip a">Approve</span><span class="chip c">Change</span><span class="chip h">Hold</span></div>
+  <video controls playsinline preload="metadata" poster="poster.jpg" src="reviewbot.mp4"></video>
+  <p class="cap">65 seconds. Claude Code drew every frame in code, and it was reviewed on a reviewbot page: two rounds, music picked by ear, done.</p>
+</div>
+
+<section id="install">
+  <p class="eye">Install</p>
+  <h2>Two lines in your terminal</h2>
+  <div class="install">
+    <div class="code" id="cmd"><span>$</span> claude plugin marketplace add hntw/reviewbot
+<span>$</span> claude plugin install reviewbot@reviewbot<button class="copy" type="button" id="copy">Copy</button></div>
+    <p class="needs">Needs Claude Code with Artifacts publishing (private pages on claude.ai) and Python 3. Then ask your agent to “put this on a review page,” or just say “reviewbot.”</p>
+  </div>
+</section>
+
+<section id="how">
+  <p class="eye">How it works</p>
+  <h2>The loop</h2>
+  <ol class="steps">
+    <li><b>Build somewhere safe</b><span>The agent does the whole batch on a test site, a draft or a branch. Nothing live.</span></li>
+    <li><b>One page</b><span>Every decision lands on one private Claude Artifact, with real screenshots and one question per card.</span></li>
+    <li><b>You tap through it</b><span>Approve, Change or Hold, plus notes. Answers save as you tap, on any device.</span></li>
+    <li><b>The agent reads it all</b><span>Changes first, then holds, then approvals. Every note, approvals included.</span></li>
+    <li><b>Round 2</b><span>A new page quotes what you said and shows what changed.</span></li>
+  </ol>
+</section>
+
+<section id="inside-claude">
+  <p class="eye">How it actually works</p>
+  <h2>All inside Claude</h2>
+  <div class="how">
+    <div><h3>Claude Code does the work</h3><p>It runs on your machine. It does the batch, takes screenshots, and builds the review page.</p></div>
+    <div><h3>The page is a Claude Artifact</h3><p>A private page on claude.ai that only you can open unless you share it. It has its own little database, so every tap and note saves the moment you make it. That's why it works on your phone, your laptop, the Claude app or a browser, and why you can stop halfway and pick it up later. (Yeah, we didn't know Claude could do that either.)</p></div>
+    <div><h3>“Done” is all you say</h3><p>Claude Code reads your answers straight from the page's database. No exporting, no copy and paste. It sorts them (changes first, then holds, then approvals), reads every note, and gets to work.</p></div>
+    <div><h3>The ship rule lives in chat</h3><p>Anyone you share the page with could tick a box, so a box isn't proof it was you. Your own words in the Claude Code chat are. That's what lets it push to the live site.</p></div>
+    <div><h3>It gets smarter</h3><p>Lessons go in a plain text file on your machine, and the agent reads it before every review. The next project starts where the last one left off.</p></div>
+  </div>
+</section>
+
+<section id="rules">
+  <p class="eye">The rules it follows</p>
+  <h2>Built so nothing ships by accident</h2>
+  <div class="rules">
+    <div class="rule"><h3>Approve isn't ship</h3><p>A tap says “this is right.” Anything that goes live waits for your OK in chat. The page hands you the exact line to paste.</p></div>
+    <div class="rule"><h3>Every note gets read</h3><p>“Love it. Also do X.” is a new task, not a done one.</p></div>
+    <div class="rule"><h3>One question, one decision</h3><p>Approve always means one thing. Two decisions get two questions.</p></div>
+    <div class="rule"><h3>No fake done</h3><p>If something half worked, the next page says so, with the fix.</p></div>
+  </div>
+</section>
+
+<section id="inside">
+  <p class="eye">What's inside</p>
+  <h2>One skill, five small files</h2>
+  <div class="box">
+    <div><p>The skill teaches your agent the loop and the rules. The kit builds the page and reads the answers back. About 90 tokens sit in every session; the rest loads only when you use it.</p>
+    <p>Your agent keeps its lessons in <code>~/.claude/reviewbot/LEARNINGS.md</code>, outside the plugin, so updates never wipe what it has learned.</p></div>
+<pre class="tree">skills/reviewbot/
+├── SKILL.md            <i># the loop and the rules</i>
+└── kit/
+    ├── make.py         <i># review.json -> the page</i>
+    ├── kit.css         <i># the look</i>
+    ├── kit.js          <i># buttons, notes, saving</i>
+    ├── answers.py      <i># answers -> a table</i>
+    └── review.example.json</pre>
+  </div>
+</section>
+
+<footer>
+  <span>MIT licensed. Made by <a href="https://github.com/hntw">Jamie Grove</a>.</span>
+  <span>Music in the video: “Werq” Kevin MacLeod (<a href="https://incompetech.com">incompetech.com</a>), licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</span>
+</footer>
+</div>
+<script>
+document.getElementById('copy').addEventListener('click', function () {
+  var b = this, t = 'claude plugin marketplace add hntw/reviewbot\nclaude plugin install reviewbot@reviewbot';
+  function done(m) { b.textContent = m; setTimeout(function () { b.textContent = 'Copy'; }, 1600); }
+  if (navigator.clipboard) navigator.clipboard.writeText(t).then(function () { done('Copied'); }, function () { done('Select and copy'); });
+  else done('Select and copy');
+});
+</script>
+</body>
+</html>
