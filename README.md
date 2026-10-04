@@ -22,7 +22,20 @@ claude plugin install reviewbot@reviewbot
 
 Update later with `claude plugin update reviewbot@reviewbot`.
 
-Needs Claude Code with Artifacts publishing (private pages on claude.ai) and Python 3.
+## Where it works
+
+Claude Code only (terminal, IDE extensions, or the desktop app's Code tab). It needs Claude Code's Artifact publishing
+and Python 3 on your machine. If the skill loads in claude.ai chat or Cowork, it tells you it runs in Claude Code and
+stops.
+
+## What it runs and sends
+
+- Runs two small Python scripts from `skills/reviewbot/kit/` on your machine: `make.py` builds the review page from a
+  `review.json` your agent writes, and `answers.py` turns your saved answers into a table.
+- Publishes each review page as a private Claude Artifact on your own claude.ai account. Your answers are stored in
+  that page's database on claude.ai. Nothing is sent anywhere else.
+- The review page loads two fonts (Archivo and Open Sans) from Google Fonts when you open it.
+- No hooks, no MCP servers, no background processes, no network calls from the scripts.
 
 ## Use
 

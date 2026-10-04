@@ -1,12 +1,20 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "reviewbot",
-  "version": "0.1.0",
+  "version": "0.1.1",
+  "displayName": "reviewbot",
   "description": "Mass review for agent work: every decision on one private page, answered from any device, read back by the agent.",
   "author": {
     "name": "Jamie Grove"
   },
-  "homepage": "https://github.com/hntw/reviewbot",
+  "homepage": "https://hntw.github.io/reviewbot/",
+  "repository": "https://github.com/hntw/reviewbot",
+  "keywords": [
+    "review",
+    "approvals",
+    "artifacts",
+    "workflow"
+  ],
   "license": "MIT",
   "skills": [
     "./skills/reviewbot"

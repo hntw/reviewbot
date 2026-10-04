@@ -10,8 +10,10 @@ Approve, Change or Hold on each card, adds notes, and presses "I'm done, go". An
 halfway and finish on another device. You read the answers straight from the page's database and act on them. Round 2
 is the same page shape, built from their notes.
 
-**Needs:** Claude Code with the Artifact tool and the `db` capability for artifacts (publishing private pages to
-claude.ai). If this session has no Artifact tool, say so and stop: this skill can't publish without it. Also Python 3.
+**Claude Code only.** This skill needs Claude Code's Artifact tool with the `db` capability (publishing private pages
+to claude.ai), its ArtifactData tool to read answers back, and Python 3 on the machine. If any of those is missing (for
+example in claude.ai chat or Cowork, where this skill may also load), tell the person reviewbot runs in Claude Code
+and stop. Don't improvise a substitute.
 
 ## The kit
 
