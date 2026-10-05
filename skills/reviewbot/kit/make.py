@@ -3,6 +3,7 @@
 capabilities {db: {}, user: {}} and files {"img/<name>": "img/<name>"} for each screenshot.
 
 review.json shape (see review.example.json):
+  code (required): short page code, project + round, e.g. "PW-R1". New round, new code.
   title, eyebrow, lede, status: [[label, "ok"|"wait"]],
   sections: [{id, eyebrow, title, intro?, html?: raw, cards: [card], questions: [{id, text}]}]   # a section with no cards/questions is a plain text panel
   card: {id, title, you_said?, changed?, links?: [[label, url]], shots?: [[file, caption]], ask?: text, html?: raw,
@@ -10,17 +11,33 @@ review.json shape (see review.example.json):
   question: {id, text, prod?: "what ships"}
   general comments box (answers/_general) is always on; "general_prompt" overrides its label.
   answered: [{text, answer}]   # decisions already made in chat: shown as static lines, no buttons
+
+Refs: every question gets a number in page order ("PW-R1 #3"), shown small and quiet next to it, saved with its answer
+and carried into the done and production lines. Numbers live in refs.json next to review.json: keep it with the page.
+A republish keeps every number; a new question gets the next one; a removed question's number is never reused.
 """
 import html, json, os, re, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 E = html.escape
 spec = json.load(open(sys.argv[1] if len(sys.argv) > 1 else 'review.json'))
+code = str(spec.get('code') or '').strip().upper()
+if not re.fullmatch(r'[A-Z0-9]+(-[A-Z0-9]+)*', code):
+    sys.exit('review.json needs a "code": a short page code, project + round, e.g. "PW-R1" (letters, digits, hyphens).')
+order = [x for s in spec['sections'] for x in [c['id'] for c in s.get('cards', [])] + [x['id'] for x in s.get('questions', [])]]
+try: kept = json.load(open('refs.json'))
+except (OSError, ValueError): kept = {}
+refs = dict(kept.get('refs', {})) if kept.get('code') == code else {}
+for qid in order:
+    if qid not in refs: refs[qid] = max(refs.values(), default=0) + 1
+json.dump({'code': code, 'refs': refs}, open('refs.json', 'w'), indent=1)
 css = open(os.path.join(HERE, 'kit.css')).read()
 js = open(os.path.join(HERE, 'kit.js')).read()
 
 def q(qid, text, prod=None):
     p = f' data-prod="1" data-prod-what="{E(prod)}"' if prod else ''
-    return f'<div class="q" data-q="{E(qid)}"{p}><p class="qt">{E(text)}</p></div>'
+    n = refs[qid]
+    return (f'<div class="q" data-q="{E(qid)}" data-ref="{code} #{n}"{p}>'
+            f'<p class="qt"><span class="qref"><span class="vh">{code} </span>#{n}</span> {E(text)}</p></div>')
 
 def card(c):
     out = [f'<div class="step" id="{E(c["id"])}"><h3>{E(c["title"])}</h3>']
@@ -36,7 +53,7 @@ def card(c):
     out.append(f'<div class="ask"><b>Your call</b>{q(c["id"], c.get("ask") or "Ship " + c["title"] + "?", c.get("prod"))}</div></div>')
     return ''.join(out)
 
-P = [f'<div class="wrap"><p class="eye">{E(spec.get("eyebrow", ""))}</p><h1>{E(spec["title"])}</h1>']
+P = [f'<div class="wrap" data-code="{code}"><p class="eye">{E(spec.get("eyebrow", ""))}</p><h1>{E(spec["title"])}</h1>']
 if spec.get('lede'): P.append(f'<p class="lede">{E(spec["lede"])}</p>')
 if spec.get('status'): P.append('<div class="status">' + ''.join(f'<span class="pill {k}">{E(l)}</span>' for l, k in spec['status']) + '</div>')
 P.append('<div class="dock" id="dock"><b id="dockCount">Loading your answers...</b><div class="meter" aria-hidden="true"><i id="dockBar"></i></div>'
@@ -57,14 +74,16 @@ if spec.get('answered'):
 P.append(f'<section class="page" id="general"><p class="eye">Anything else</p><h2>General comments</h2>'
          f'<label class="genlab" for="generalNote">{E(spec.get("general_prompt", "Anything not covered above: big-picture reactions, new ideas, things to stop doing."))}</label>'
          '<textarea id="generalNote" class="gen" disabled placeholder="Write anything here"></textarea><small id="generalSave" class="qsave"></small></section>')
+P.append(f'<p class="pagecode">Page {code}. The small numbers by each question go into your done line, so you and Claude can '
+         f'refer to them later ("{code} #2").</p>')
 P.append('</div>')
 
 fonts = spec.get('fonts', 'https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,700..900&family=Open+Sans:wght@400;600;700&display=swap')
-page = (f'<title>{E(spec["title"])}</title>\n<link rel="preconnect" href="https://fonts.googleapis.com">\n<link rel="stylesheet" href="{fonts}">\n'
+page = (f'<title>{E(spec["title"])} ({code})</title>\n<link rel="preconnect" href="https://fonts.googleapis.com">\n<link rel="stylesheet" href="{fonts}">\n'
         f'<style>\n{css}</style>\n' + '\n'.join(P) + f'\n<script>\n{js}</script>\n')
 open('index.html', 'w').write(page)
 ids = re.findall(r'data-q="([^"]+)"', page)
 dupes = sorted({i for i in ids if ids.count(i) > 1})
 missing = [f for s in spec['sections'] for c in s.get('cards', []) for f, _ in c.get('shots', []) if not os.path.exists(os.path.join('img', f))]
-prods = len(re.findall(r'data-q="[^"]+" data-prod="1"', page))
-print(f'index.html {len(page)} bytes; {len(ids)} questions ({prods} with production checkbox); dupes: {dupes or 0}; missing shots: {missing or 0}')
+prods = len(re.findall(r'<div class="q"[^>]* data-prod="1"', page))
+print(f'index.html {len(page)} bytes; page {code}, #1-#{max(refs.values(), default=0)}; {len(ids)} questions ({prods} with production checkbox); dupes: {dupes or 0}; missing shots: {missing or 0}')

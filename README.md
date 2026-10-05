@@ -31,7 +31,8 @@ stops.
 ## What it runs and sends
 
 - Runs two small Python scripts from `skills/reviewbot/kit/` on your machine: `make.py` builds the review page from a
-  `review.json` your agent writes, and `answers.py` turns your saved answers into a table.
+  `review.json` your agent writes (and keeps each question's number in a small `refs.json`), and `answers.py` turns
+  your saved answers into a table.
 - Publishes each review page as a private Claude Artifact on your own claude.ai account. Your answers are stored in
   that page's database on claude.ai. Nothing is sent anywhere else.
 - The review page loads two fonts (Archivo and Open Sans) from Google Fonts when you open it.
@@ -41,6 +42,10 @@ stops.
 
 Ask your agent to "put this on a review page" or say "reviewbot" when it has a batch of decisions for you. When you've
 answered, say "done" in chat.
+
+Each page has a short code and each question a small number (like `PW-R1 #3`). They're there so you and your agent can
+point at one decision later, in the same chat or a new one. They also show up in the line you paste to approve a
+production change.
 
 ## License
 

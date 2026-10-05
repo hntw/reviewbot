@@ -36,6 +36,11 @@ heading if it doesn't exist).
 - **One question = one decision.** Phrase it so Approve has one meaning. Two decisions, two questions. For a choice
   among options, make one card per option ("Use X?") and tell the human to approve the one they want.
 - **Ids are stable.** Each `id` (the `data-q` key) is unique and never renamed: answers are keyed by it. New round, new page.
+- **Every page has a code, every question a number.** `code` in review.json (project + round, e.g. `PW-R1`; new
+  round, new code). make.py numbers questions in page order and keeps them in `refs.json` (keep it with the page):
+  numbers never change on a republish and are never reused. They show small and quiet on the page and ride into
+  the done and production lines. Quote them back ("Done: PW-R1 #3 pushed") and log the code and URL in the
+  project's notes so "PW-R1 #3" can be found after a /clear.
 - **Show the real thing.** Each card links to the actual work (test/preview and live) with screenshots at desktop and
   phone width. Look at your own screenshots before publishing, and fix what you see first.
 - **Say what changed, in plain words.** Round 2+ cards quote the human ("You said: ...") then "What changed: ...".
@@ -73,7 +78,7 @@ heading if it doesn't exist).
 ## review.json at a glance
 
 ```
-title, eyebrow, lede, status: [[label, "ok"|"wait"]]
+code (required, e.g. "PW-R1"), title, eyebrow, lede, status: [[label, "ok"|"wait"]]
 sections: [{id, eyebrow, title, intro?, html?, cards: [card], questions: [{id, text, prod?}]}]
 card: {id, title, you_said?, changed?, links?: [[label, url]], shots?: [[file, caption]], ask?, html?, why?, prod?}
 answered: [{text, answer}]       general_prompt?: label for the always-on General comments box
@@ -83,9 +88,9 @@ answered: [{text, answer}]       general_prompt?: label for the always-on Genera
 
 | Doc | Fields |
 |---|---|
-| `answers/<id>` | `q`, `status` (`approve` / `change` / `hold` / `""`), `note`, `at`, `prod` (only on production questions) |
+| `answers/<id>` | `q`, `ref` ("PW-R1 #3"), `status` (`approve` / `change` / `hold` / `""`), `note`, `at`, `prod` (only on production questions) |
 | `answers/_general` | `note`, `at` |
-| `answers/_done` | `at`, `prod` (the production moves ticked and approved) |
+| `answers/_done` | `at`, `code`, `prod` (the production moves ticked and approved, each led by its ref) |
 
 ## Gotchas
 

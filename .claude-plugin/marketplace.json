@@ -9,7 +9,7 @@
       "name": "reviewbot",
       "source": "./",
       "description": "Mass review for agent work: every decision on one private page, answered from any device, read back by the agent.",
-      "version": "0.1.2"
+      "version": "0.2.0"
     }
   ]
 }

@@ -1,9 +1,10 @@
 (function(){
-  // Decision UI for .q[data-q] blocks. Saves answers/<qid> {q, status, note, prod?, at}; general comments -> answers/_general;
-  // done button -> answers/_done {at, prod: [...]}. Questions marked data-prod="1" get an explicit "Approved for production"
+  // Decision UI for .q[data-q] blocks. Saves answers/<qid> {q, ref, status, note, prod?, at}; general comments -> answers/_general;
+  // done button -> answers/_done {at, code, prod: ["PW-R1 #3 what ships", ...]}. Refs ("PW-R1 #3") come from make.py. Questions marked data-prod="1" get an explicit "Approved for production"
   // checkbox. After "done", the dock shows one plain line naming every production approval, for the human to paste into
   // chat (agents' permission checks act on the human's own chat words, not on page data).
   var qs=[].slice.call(document.querySelectorAll('.q[data-q]:not(.done)'));
+  var code=(document.querySelector('[data-code]')||{dataset:{}}).dataset.code||'';
   var els={}, state={}, chain={}, timers={};
   var countEl=document.getElementById('dockCount'), bar=document.getElementById('dockBar'), doneBtn=document.getElementById('doneBtn'), msg=document.getElementById('dockMsg');
   var gen=document.getElementById('generalNote'), genSv=document.getElementById('generalSave'), genTimer=0, genChain=Promise.resolve();
@@ -21,12 +22,14 @@
       var span=document.createElement('span'); span.textContent='Approved for production: '+(q.getAttribute('data-prod-what')||'ship this live');
       lab.appendChild(cb); lab.appendChild(span); q.appendChild(lab);
     }
-    var ta=document.createElement('textarea'); ta.id='note-'+id; ta.placeholder='Notes or changes (optional)'; ta.disabled=true; ta.setAttribute('aria-label','Notes for question '+id);
+    var ref=q.getAttribute('data-ref')||'', qt=q.querySelector('.qt').cloneNode(true), rs=qt.querySelector('.qref'); if(rs) rs.remove();
+    var text=qt.textContent.trim();
+    var ta=document.createElement('textarea'); ta.id='note-'+id; ta.placeholder='Notes or changes (optional)'; ta.disabled=true; ta.setAttribute('aria-label','Notes for '+(ref||'question '+id));
     q.appendChild(ta);
-    els[id]={q:q,btns:btns,ta:ta,sv:sv,cb:cb,text:q.querySelector('.qt').textContent,what:q.getAttribute('data-prod-what')||q.querySelector('.qt').textContent};
+    els[id]={q:q,btns:btns,ta:ta,sv:sv,cb:cb,ref:ref,text:text,what:q.getAttribute('data-prod-what')||text};
   });
   function prodList(){
-    return qs.map(function(q){return q.getAttribute('data-q');}).filter(function(id){var st=state[id]||{};return els[id].cb&&st.prod&&st.status==='approve';}).map(function(id){return els[id].what;});
+    return qs.map(function(q){return q.getAttribute('data-q');}).filter(function(id){var st=state[id]||{};return els[id].cb&&st.prod&&st.status==='approve';}).map(function(id){return els[id];});
   }
   function paint(){
     var n=0; qs.forEach(function(q){var id=q.getAttribute('data-q'),st=state[id]||{},e=els[id];
@@ -39,7 +42,7 @@
   }
   function save(id){
     var e=els[id], st=state[id]||{};
-    var body={q:e.text,status:st.status||'',note:e.ta.value,at:new Date().toISOString()};
+    var body={q:e.text,ref:e.ref,status:st.status||'',note:e.ta.value,at:new Date().toISOString()};
     if(e.cb) body.prod=!!st.prod;
     e.sv.textContent='Saving...';
     chain[id]=(chain[id]||Promise.resolve()).then(function(){return window.__db.doc('answers/'+id).set(body);})
@@ -54,7 +57,7 @@
     if(!prodOut) return;
     var l=prodList();
     if(!l.length){prodOut.hidden=true;return;}
-    prodText.textContent='Approved for production: '+l.join('; ')+'.';
+    prodText.textContent='Approved for production'+(code?' ('+code+')':'')+': '+l.map(function(e){return (e.ref?e.ref.replace(code+' ','')+' ':'')+e.what;}).join('; ')+'.';
     prodOut.hidden=false;
   }
   function start(db){
@@ -80,9 +83,10 @@
       doneBtn.disabled=true; msg.textContent='Sending...';
       if(genTimer){clearTimeout(genTimer);genTimer=0;saveGeneral();}
       var l=prodList();
-      db.doc('answers/_done').set({at:new Date().toISOString(),prod:l}).then(function(){
+      db.doc('answers/_done').set({at:new Date().toISOString(),code:code,prod:l.map(function(e){return (e.ref?e.ref+' ':'')+e.what;})}).then(function(){
         showProd();
-        msg.textContent=l.length?'Sent. To ship, paste the production line below into your Claude chat.':'Sent. Tell Claude "done" in your session and it will pick these up.';
+        var said=code?'"done with '+code+'"':'"done"';
+        msg.textContent=l.length?'Sent. To ship, paste the production line below into your Claude chat.':'Sent. Tell Claude '+said+' in your session and it will pick these up.';
         doneBtn.disabled=false;},function(){msg.textContent='Not sent, try again.';doneBtn.disabled=false;});
     });
     db.collection('answers').onSnapshot(function(snap){
